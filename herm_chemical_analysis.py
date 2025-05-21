@@ -189,7 +189,7 @@ def plot_heatmap(matrix, title, filename, plot_dir="plots",
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
     
-    plt.figure(figsize=(12, 10))
+    plt.figure(figsize=(12, 10), dpi=300)  # Increased DPI for higher resolution
     
     # Determine if labels should be shown based on threshold
     actual_xticklabels = xticklabels
@@ -209,11 +209,11 @@ def plot_heatmap(matrix, title, filename, plot_dir="plots",
         cmap = 'viridis'  # Default matplotlib colormap
 
     sns.heatmap(matrix, cmap=cmap, xticklabels=actual_xticklabels, yticklabels=actual_yticklabels)
-    plt.title(title)
-    plt.xlabel("Neuron (column)")
-    plt.ylabel("Neuron (row)")
+    plt.title(title, fontsize=16)  # Increased font size for title
+    plt.xlabel("Neuron (column)", fontsize=14)  # Increased font size for axis labels
+    plt.ylabel("Neuron (row)", fontsize=14)
     plt.tight_layout()
-    plt.savefig(os.path.join(plot_dir, filename))
+    plt.savefig(os.path.join(plot_dir, filename), dpi=300, bbox_inches='tight')  # Increased DPI and added bbox_inches
     plt.close()
     print(f"Saved heatmap: {os.path.join(plot_dir, filename)}")
 
@@ -323,29 +323,25 @@ def main(file_path="Herm Chemical.csv"):
         scc_indices = [label_to_idx_map[node] for node in scc_nodes]
         sub_adj_matrix_l = adj_matrix[np.ix_(scc_indices, scc_indices)]
         
-        plot_heatmap(sub_adj_matrix_l, f"Heatmap of Largest SCC ({scc_info['id_str']})", f"scc_largest_standard.png", plot_dir=plot_dir,
+        plot_heatmap(sub_adj_matrix_l, f"Heatmap of Largest SCC", f"scc_largest_standard.png", plot_dir=plot_dir,
                      xticklabels=scc_nodes, yticklabels=scc_nodes)
         
         if scc_info["stationary_distribution"]:
             dist = scc_info["stationary_distribution"]
-            # Original scc_nodes are in the order used for P_scc, which is the order of rows/cols in sub_adj_matrix_l
-            # if we build sub_adj_matrix_l based on scc_info["p_scc_node_order"] instead of scc_info["nodes"]
-            # For simplicity, let's re-get indices based on p_scc_node_order
             ordered_nodes_for_submatrix = scc_info["p_scc_node_order"]
             scc_indices_ordered = [label_to_idx_map[node] for node in ordered_nodes_for_submatrix]
             sub_adj_for_sort = adj_matrix[np.ix_(scc_indices_ordered, scc_indices_ordered)]
 
             sorted_node_names_l = sorted(ordered_nodes_for_submatrix, key=lambda n: dist.get(n, -1), reverse=True)
             
-            # Create map from original node order in sub_adj_for_sort to new sorted order
             current_order_map_l = {node: idx for idx, node in enumerate(ordered_nodes_for_submatrix)}
             new_order_indices_l = [current_order_map_l[name] for name in sorted_node_names_l]
             
             sorted_sub_adj_matrix_l = sub_adj_for_sort[np.ix_(new_order_indices_l, new_order_indices_l)]
-            plot_heatmap(sorted_sub_adj_matrix_l, f"Sorted Heatmap of Largest SCC ({scc_info['id_str']})", f"scc_largest_sorted.png", plot_dir=plot_dir,
+            plot_heatmap(sorted_sub_adj_matrix_l, f"Sorted Heatmap of Largest SCC", f"scc_largest_sorted.png", plot_dir=plot_dir,
                          xticklabels=False, yticklabels=False)
         else:
-            print(f"Skipping sorted heatmap for Largest SCC ({scc_info['id_str']}) as it has no valid stationary distribution.")
+            print(f"Skipping sorted heatmap for Largest SCC as it has no valid stationary distribution.")
 
     # 3. Second Largest SCC Heatmap (Standard & Sorted)
     if second_largest_scc_by_size:
@@ -354,7 +350,7 @@ def main(file_path="Herm Chemical.csv"):
         scc_indices = [label_to_idx_map[node] for node in scc_nodes]
         sub_adj_matrix_sl = adj_matrix[np.ix_(scc_indices, scc_indices)]
         
-        plot_heatmap(sub_adj_matrix_sl, f"Heatmap of Second Largest SCC ({scc_info['id_str']})", f"scc_second_largest_standard.png", plot_dir=plot_dir,
+        plot_heatmap(sub_adj_matrix_sl, f"Heatmap of Second Largest SCC", f"scc_second_largest_standard.png", plot_dir=plot_dir,
                      xticklabels=scc_nodes, yticklabels=scc_nodes)
 
         if scc_info["stationary_distribution"]:
@@ -369,10 +365,10 @@ def main(file_path="Herm Chemical.csv"):
             new_order_indices_sl = [current_order_map_sl[name] for name in sorted_node_names_sl]
 
             sorted_sub_adj_matrix_sl = sub_adj_for_sort_sl[np.ix_(new_order_indices_sl, new_order_indices_sl)]
-            plot_heatmap(sorted_sub_adj_matrix_sl, f"Sorted Heatmap of Second Largest SCC ({scc_info['id_str']})", f"scc_second_largest_sorted.png", plot_dir=plot_dir,
+            plot_heatmap(sorted_sub_adj_matrix_sl, f"Sorted Heatmap of Second Largest SCC", f"scc_second_largest_sorted.png", plot_dir=plot_dir,
                          xticklabels=False, yticklabels=False)
         else:
-            print(f"Skipping sorted heatmap for Second Largest SCC ({scc_info['id_str']}) as it has no valid stationary distribution.")
+            print(f"Skipping sorted heatmap for Second Largest SCC as it has no valid stationary distribution.")
 
     # 4. Sorted Whole Adjacency Matrix Heatmap
     final_node_order_for_full_heatmap = []
